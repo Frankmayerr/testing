@@ -2,35 +2,42 @@
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using NUnit.Framework;
+using NUnit.Framework.Internal.Filters;
 
 namespace HomeExercises
 {
 	public class NumberValidatorTests
 	{
-		[Test]
-		public void Test()
+		[TestCase(-1,2,true, TestName = "Negative precisiion")]
+		[TestCase(1, -2, false, TestName = "Negative scale")]
+		[TestCase(1, 2, false, TestName = "Scale greater than precision")]
+		public void ValidatorResultExceptionThrow(int precision, int scale, bool onlyPositive)
 		{
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, true));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, false));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
+			Assert.That(() => new NumberValidator(precision, scale, onlyPositive), Throws.ArgumentException);
+		}
 
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("00.00"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-0.00"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+0.00"));
-			Assert.IsTrue(new NumberValidator(4, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(17, 2, true).IsValidNumber("0.000"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("a.sd"));
+		[TestCase(17, 6, true, ".", ExpectedResult = false, TestName = "Bad format: only a point")]
+		[TestCase(17, 6, true, "1.23.4", ExpectedResult = false, TestName = "Bad format: two points")]
+		[TestCase(17, 6, true, "1..234", ExpectedResult = false, TestName = "Bad format: two points together")]
+		[TestCase(17, 6, true, "1.", ExpectedResult = false, TestName = "Bad format: point without fraction part")]
+		[TestCase(17, 6, true, ".3", ExpectedResult = false, TestName = "Bad format: point without int part")]
+		[TestCase(17, 2, true, "", ExpectedResult = false, TestName = "Empty input")]
+		[TestCase(17, 2, true, "000000.00", ExpectedResult = true, TestName = "Zero number")]
+		[TestCase(4, 2, true, "1,33", ExpectedResult = true, TestName = "Number with comma")]
+		[TestCase(4, 2, true, "1.333", ExpectedResult = false, TestName = "Bigger scale than should be")]
+		[TestCase(3, 2, true, "12.34", ExpectedResult = false, TestName = "Bigger precision than should be")]
+		[TestCase(3, 2, false, "-8.88", ExpectedResult = false, TestName = "Bigger precision due to sign")]
+		[TestCase(3, 2, true, "+1.11", ExpectedResult = false, TestName = "Bigger precision due to sign(minus)")]
+		[TestCase(3, 2, true, "+1.98", ExpectedResult = false, TestName = "Bigger precision due to sign(plus)")]
+		[TestCase(4, 2, true, "-2", ExpectedResult = false, TestName = "Negative number with onlyPositive parameter = true")]
+		[TestCase(3, 2, true, "a.sd", ExpectedResult = false, TestName = "Not a number")]
+		public bool ValidatorResult(int precision, int scale, bool onlyPositive, string value="0.0")
+		{
+			return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(value);
 		}
 	}
 
-	public class NumberValidator
+public class NumberValidator
 	{
 		private readonly Regex numberRegex;
 		private readonly bool onlyPositive;
@@ -45,7 +52,7 @@ namespace HomeExercises
 			if (precision <= 0)
 				throw new ArgumentException("precision must be a positive number");
 			if (scale < 0 || scale >= precision)
-				throw new ArgumentException("precision must be a non-negative number less or equal than precision");
+				throw new ArgumentException("scale must be a non-negative number less or equal than precision");
 			numberRegex = new Regex(@"^([+-]?)(\d+)([.,](\d+))?$", RegexOptions.IgnoreCase);
 		}
 

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Runtime.InteropServices;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace HomeExercises
@@ -15,16 +16,14 @@ namespace HomeExercises
 			var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
 				new Person("Vasili III of Russia", 28, 170, 60, null));
 
-			// Перепишите код на использование Fluent Assertions.
-			Assert.AreEqual(actualTsar.Name, expectedTsar.Name);
-			Assert.AreEqual(actualTsar.Age, expectedTsar.Age);
-			Assert.AreEqual(actualTsar.Height, expectedTsar.Height);
-			Assert.AreEqual(actualTsar.Weight, expectedTsar.Weight);
+			actualTsar.ShouldBeEquivalentTo(expectedTsar, options => options
+			.Excluding(o => o.Id)
+			.Excluding(o=> o.Parent.Id));
 
-			Assert.AreEqual(expectedTsar.Parent.Name, actualTsar.Parent.Name);
-			Assert.AreEqual(expectedTsar.Parent.Age, actualTsar.Parent.Age);
-			Assert.AreEqual(expectedTsar.Parent.Height, actualTsar.Parent.Height);
-			Assert.AreEqual(expectedTsar.Parent.Parent, actualTsar.Parent.Parent);
+			// Не нужно переопределять Equals,в котором мы должны указать каждое поле, которое собираемся проверить
+			// Вместо этого проще исключить несколько полей, которые проверять не надо
+			// Этот AreEqual не будет работать для объектов другого типа
+			// И будет вызывать ошибку, если мы используем его в другом тесте с другими объектами
 		}
 
 		[Test]
