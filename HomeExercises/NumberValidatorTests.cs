@@ -8,32 +8,66 @@ namespace HomeExercises
 {
 	public class NumberValidatorTests
 	{
-		[TestCase(-1,2,true, TestName = "Negative precisiion")]
-		[TestCase(1, -2, false, TestName = "Negative scale")]
-		[TestCase(1, 2, false, TestName = "Scale greater than precision")]
-		public void ValidatorResultExceptionThrow(int precision, int scale, bool onlyPositive)
+		[TestCase(-1,2, TestName = "NegativePrecisiion_isExceptionCase")]
+		[TestCase(1, -2, TestName = "Negative scale_isExceptionCase")]
+		[TestCase(1, 2, TestName = "ScaleGreaterThanPrecision_isExceptionCase")]
+		public void ValidatorResultExceptionThrow(int precision, int scale)
 		{
-			Assert.That(() => new NumberValidator(precision, scale, onlyPositive), Throws.ArgumentException);
+			Assert.That(() => new NumberValidator(precision, scale), Throws.ArgumentException);
 		}
 
-		[TestCase(17, 6, true, ".", ExpectedResult = false, TestName = "Bad format: only a point")]
-		[TestCase(17, 6, true, "1.23.4", ExpectedResult = false, TestName = "Bad format: two points")]
-		[TestCase(17, 6, true, "1..234", ExpectedResult = false, TestName = "Bad format: two points together")]
-		[TestCase(17, 6, true, "1.", ExpectedResult = false, TestName = "Bad format: point without fraction part")]
-		[TestCase(17, 6, true, ".3", ExpectedResult = false, TestName = "Bad format: point without int part")]
-		[TestCase(17, 2, true, "", ExpectedResult = false, TestName = "Empty input")]
-		[TestCase(17, 2, true, "000000.00", ExpectedResult = true, TestName = "Zero number")]
-		[TestCase(4, 2, true, "1,33", ExpectedResult = true, TestName = "Number with comma")]
-		[TestCase(4, 2, true, "1.333", ExpectedResult = false, TestName = "Bigger scale than should be")]
-		[TestCase(3, 2, true, "12.34", ExpectedResult = false, TestName = "Bigger precision than should be")]
-		[TestCase(3, 2, false, "-8.88", ExpectedResult = false, TestName = "Bigger precision due to sign")]
-		[TestCase(3, 2, true, "+1.11", ExpectedResult = false, TestName = "Bigger precision due to sign(minus)")]
-		[TestCase(3, 2, true, "+1.98", ExpectedResult = false, TestName = "Bigger precision due to sign(plus)")]
-		[TestCase(4, 2, true, "-2", ExpectedResult = false, TestName = "Negative number with onlyPositive parameter = true")]
-		[TestCase(3, 2, true, "a.sd", ExpectedResult = false, TestName = "Not a number")]
-		public bool ValidatorResult(int precision, int scale, bool onlyPositive, string value="0.0")
+		// FormatTests
+		[TestCase(".", ExpectedResult = false, TestName = "onlyAPoint_isBadFormat")]
+		[TestCase("1.2.4", ExpectedResult = false, TestName = "twoPointsWithNumber_isBadFormat")]
+		[TestCase("1..24", ExpectedResult = false, TestName = "twoPointsTogether_isBadFormat")]
+		[TestCase("1.", ExpectedResult = false, TestName = "pointWithoutFractionPart_isBadFormat")]
+		[TestCase(".3", ExpectedResult = false, TestName = "pointWithoutIntPart_isBadFormat")]
+		[TestCase("", ExpectedResult = false, TestName = "emptyNumberString_isBadFormat")]
+		[TestCase("a.sd", ExpectedResult = false, TestName = "notANumber_isBadFormat")]
+		[TestCase(" 1.1", ExpectedResult = false, TestName = "numberWithSpace_isBadFormat")]
+		[TestCase("1 .1", ExpectedResult = false, TestName = "numberWithSpaceInside_isBadFormat")]
+		[TestCase(null, ExpectedResult = false, TestName = "nullInsteadNumber_isBadFormat")]
+		//NumberRulesTests
+		[TestCase("000.00", ExpectedResult = true, TestName = "zeroNumber_isGoodNumber")]
+		[TestCase("1,33", ExpectedResult = true, TestName = "numberWithComma_isGoodNumber")]
+		[TestCase("1.333", ExpectedResult = false, TestName = "biggerScale_thanShouldBe")]
+		[TestCase("1342.34", ExpectedResult = false, TestName = "biggerPrecision_thanShouldBe")]
+		[TestCase("+661.98", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(plus)")]
+		[TestCase("-2", ExpectedResult = false, TestName = "negativeNumber_WithOnlyPositiveParameter_ShouldBeFalse")]
+		public bool ValidatorResult(string value)
 		{
-			return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(value);
+			return new NumberValidator(5, 2, true).IsValidNumber(value);
+		}
+
+
+		[TestCase("-1.11", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(minus)")]
+		[TestCase("-1.1", ExpectedResult = true, TestName = "negativeNumber_WithOnlyPositive=false_shouldBeTrue")]
+		public bool ValidatorResultOnlyNegative(string value)
+		{
+			return new NumberValidator(3, 2).IsValidNumber(value);
+		}
+
+		[Test]
+		public void FluentTests()
+		{
+			new NumberValidator(3, 2).IsValidNumber("-1.1").Should().BeTrue();
+			new NumberValidator(3, 2).IsValidNumber("-1.11").Should().BeFalse();
+			NumberValidator nv = new NumberValidator(5, 2, true);
+			nv.IsValidNumber("1.1").Should().BeTrue();
+			nv.IsValidNumber(" 1.1").Should().BeFalse();
+			nv.IsValidNumber(".").Should().BeFalse();
+			nv.IsValidNumber("1.2.4").Should().BeFalse();
+			nv.IsValidNumber("1..2").Should().BeFalse();
+			nv.IsValidNumber("1.").Should().BeFalse();
+			nv.IsValidNumber("").Should().BeFalse();
+			nv.IsValidNumber("null").Should().BeFalse();
+			nv.IsValidNumber("a.sd").Should().BeFalse();
+			nv.IsValidNumber("000.00").Should().BeTrue();
+			nv.IsValidNumber("1,33").Should().BeTrue();
+			nv.IsValidNumber("1.333").Should().BeFalse();
+			nv.IsValidNumber("1111.11").Should().BeFalse();
+			nv.IsValidNumber("+661.98").Should().BeFalse();
+			nv.IsValidNumber("-2").Should().BeFalse();
 		}
 	}
 
