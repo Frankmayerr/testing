@@ -8,45 +8,49 @@ namespace HomeExercises
 {
 	public class NumberValidatorTests
 	{
-		[TestCase(-1,2, TestName = "NegativePrecisiion_isExceptionCase")]
-		[TestCase(1, -2, TestName = "Negative scale_isExceptionCase")]
-		[TestCase(1, 2, TestName = "ScaleGreaterThanPrecision_isExceptionCase")]
-		public void ValidatorResultExceptionThrow(int precision, int scale)
+		[TestCase(-1,2, TestName = "NegativePrecisiion")]
+		[TestCase(1, -2, TestName = "Negative scale")]
+		[TestCase(1, 2, TestName = "ScaleGreaterThanPrecision")]
+		public void exceptionCaseTests(int precision, int scale)
 		{
 			Assert.That(() => new NumberValidator(precision, scale), Throws.ArgumentException);
 		}
 
-		// FormatTests
-		[TestCase(".", ExpectedResult = false, TestName = "onlyAPoint_isBadFormat")]
-		[TestCase("1.2.4", ExpectedResult = false, TestName = "twoPointsWithNumber_isBadFormat")]
-		[TestCase("1..24", ExpectedResult = false, TestName = "twoPointsTogether_isBadFormat")]
-		[TestCase("1.", ExpectedResult = false, TestName = "pointWithoutFractionPart_isBadFormat")]
-		[TestCase(".3", ExpectedResult = false, TestName = "pointWithoutIntPart_isBadFormat")]
-		[TestCase("", ExpectedResult = false, TestName = "emptyNumberString_isBadFormat")]
-		[TestCase("a.sd", ExpectedResult = false, TestName = "notANumber_isBadFormat")]
-		[TestCase(" 1.1", ExpectedResult = false, TestName = "numberWithSpace_isBadFormat")]
-		[TestCase("1 .1", ExpectedResult = false, TestName = "numberWithSpaceInside_isBadFormat")]
-		[TestCase(null, ExpectedResult = false, TestName = "nullInsteadNumber_isBadFormat")]
-		//NumberRulesTests
-		[TestCase("000.00", ExpectedResult = true, TestName = "zeroNumber_isGoodNumber")]
-		[TestCase("1,33", ExpectedResult = true, TestName = "numberWithComma_isGoodNumber")]
+		[TestCase(".", ExpectedResult = false, TestName = "onlyAPoint")]
+		[TestCase("1.2.4", ExpectedResult = false, TestName = "twoPointsWithNumber")]
+		[TestCase("1..24", ExpectedResult = false, TestName = "twoPointsTogether")]
+		[TestCase("1.", ExpectedResult = false, TestName = "pointWithoutFractionPart")]
+		[TestCase(".3", ExpectedResult = false, TestName = "pointWithoutIntPart")]
+		[TestCase("", ExpectedResult = false, TestName = "emptyNumberString")]
+		[TestCase("a.sd", ExpectedResult = false, TestName = "notANumber")]
+		[TestCase(" 1.1", ExpectedResult = false, TestName = "numberWithSpace")]
+		[TestCase("1 .1", ExpectedResult = false, TestName = "numberWithSpaceInside")]
+		[TestCase(null, ExpectedResult = false, TestName = "nullInsteadNumber")]
+		public bool BadFormatTestOfNumberValidator_returnsFalse(string value)
+		{
+			return new NumberValidator(5, 2, true).IsValidNumber(value);
+		}
+
+		[TestCase("000.00", ExpectedResult = true, TestName = "zeroNumber_isGood")]
+		[TestCase("1,33", ExpectedResult = true, TestName = "numberWithComma_isGood")]
 		[TestCase("1.333", ExpectedResult = false, TestName = "biggerScale_thanShouldBe")]
 		[TestCase("1342.34", ExpectedResult = false, TestName = "biggerPrecision_thanShouldBe")]
-		[TestCase("+661.98", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(plus)")]
+		[TestCase("+661.98", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(plus)_isBad")]
 		[TestCase("-2", ExpectedResult = false, TestName = "negativeNumber_WithOnlyPositiveParameter_ShouldBeFalse")]
-		public bool ValidatorResult(string value)
+		public bool NumberValidatorRules(string value)
 		{
 			return new NumberValidator(5, 2, true).IsValidNumber(value);
 		}
 
 
-		[TestCase("-1.11", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(minus)")]
-		[TestCase("-1.1", ExpectedResult = true, TestName = "negativeNumber_WithOnlyPositive=false_shouldBeTrue")]
+		[TestCase("-1.11", ExpectedResult = false, TestName = "biggerPrecision_dueToSign(minus)_isBad")]
+		[TestCase("-1.1", ExpectedResult = true, TestName = "negativeNumber_withOnlyPositive=false_isGood")]
 		public bool ValidatorResultOnlyNegative(string value)
 		{
 			return new NumberValidator(3, 2).IsValidNumber(value);
 		}
 
+		// перепилил на fluent отдельно
 		[Test]
 		public void FluentTests()
 		{

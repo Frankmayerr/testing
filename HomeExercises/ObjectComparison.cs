@@ -16,9 +16,8 @@ namespace HomeExercises
 			var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
 				new Person("Vasili III of Russia", 28, 170, 60, null));
 
-			actualTsar.ShouldBeEquivalentTo(expectedTsar, options => options
-			.Excluding(o => o.Id)
-			.Excluding(o=> o.Parent.Id));
+			expectedTsar.ShouldBeEquivalentTo(actualTsar, options => options
+				.Excluding(o => o.SelectedMemberInfo.Name == nameof(Person.Id)));
 
 			// Не нужно переопределять Equals,в котором мы должны указать каждое поле, которое собираемся проверить
 			// Вместо этого проще исключить несколько полей, которые проверять не надо
